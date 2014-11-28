@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SOCKBOT</title>
+    <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="public/css/style.css">
+</head>
+
+<body>
+    <div class="jumbotron">
+        <h1>SOCKBOT</h1>
+        <p>fusing socket.io and johnny-fve</p>
+        <i id='light-switch' class="light-off fa fa-lightbulb-o fa-5x"></i>
+    </div>
+
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    var socket = io('http://localhost');
+
+
+    var $switch = $('#light-switch');
+    $switch.on('click', function() {
+        if ($switch.hasClass('light-off')) {
+            $switch.removeClass('light-off').addClass('light-on');
+            socket.emit('light:on');
+        } else {
+            $switch.removeClass('light-on').addClass('light-off');
+            socket.emit('light:off');
+        }
+    });
+
+    socket.on('light:on', function() {
+        $switch.removeClass('light-off').addClass('light-on');
+    });
+    socket.on('light:off', function() {
+        $switch.removeClass('light-on').addClass('light-off');
+    });
+    </script>
+
+</body>
+
+</html>

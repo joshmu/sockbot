@@ -1,0 +1,18 @@
+h1:hover, p:hover {
+  cursor: default;
+}
+.jumbotron {
+  text-align: center;
+}
+#light-switch {
+  cursor: pointer;
+  transition: 0.4s all ease;
+}
+
+#light-switch.light-on {
+  color: red;
+}
+
+#light-switch.light-off {
+  color: black;
+}
