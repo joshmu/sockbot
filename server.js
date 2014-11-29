@@ -5,7 +5,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-var port = process.env.PORT || 3000;
+var port = 3333;
 
 server.listen(port, function() {
   console.log('Server listening on port: ' + port);
@@ -22,9 +22,18 @@ app.get('/', function(req, res) {
 var board = new five.Board();
 
 board.on('ready', function() {
+    console.log('board is ready');
+
     var led = new five.Led(13);
 
+    // remember light state
+    var light = false;
+
     io.on('connection', function(socket) {
+      console.log('connected');
+
+        // set to what the light currently is
+        socket.emit('light:' + (light ? 'on' : 'off'));
 
         socket.on('light:on', function() {
           on();
@@ -34,14 +43,20 @@ board.on('ready', function() {
           off();
         });
 
+        socket.on('disconnect', function() {
+            console.log('disconnected');
+        });
+
         function on() {
-            socket.broadcast.emit('light:on');
+            io.emit('light:on');
             led.on();
+            light = true;
         }
 
         function off() {
-            socket.broadcast.emit('light:off');
+            io.emit('light:off');
             led.off();
+            light = false;
         }
 
         board.repl.inject({
