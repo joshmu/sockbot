@@ -8,7 +8,7 @@ var io = require('socket.io')(server);
 var port = 3333;
 
 server.listen(port, function() {
-  console.log('Server listening on port: ' + port);
+    console.log('Server listening on port: ' + port);
 });
 
 app.use('/public', express.static(__dirname + '/public'));
@@ -28,23 +28,28 @@ board.on('ready', function() {
 
     // remember light state
     var light = false;
+    // remember connections
+    var connections = 0;
 
     io.on('connection', function(socket) {
-      console.log('connected');
+        connections++;
+        console.log('connected: ' + connections);
 
         // set to what the light currently is
         socket.emit('light:' + (light ? 'on' : 'off'));
 
         socket.on('light:on', function() {
-          on();
+            on();
         });
 
         socket.on('light:off', function() {
-          off();
+            off();
         });
 
         socket.on('disconnect', function() {
+            connections--;
             console.log('disconnected');
+            console.log('connected: ' + connections);
         });
 
         function on() {
