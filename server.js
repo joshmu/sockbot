@@ -1,3 +1,7 @@
+// init ngrok with server load
+require('./initNgrok.js')();
+
+
 var five = require('johnny-five');
 
 var express = require('express');
