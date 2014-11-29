@@ -5,7 +5,11 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-server.listen(3000);
+var port = process.env.PORT || 3000;
+
+server.listen(port, function() {
+  console.log('Server listening on port: ' + port);
+});
 
 app.use('/public', express.static(__dirname + '/public'));
 app.use('/bower_components', express.static(__dirname + '/bower_components'));
@@ -23,20 +27,20 @@ board.on('ready', function() {
     io.on('connection', function(socket) {
 
         socket.on('light:on', function() {
-            led.on();
+          on();
         });
 
         socket.on('light:off', function() {
-            led.off();
+          off();
         });
 
         function on() {
-            socket.emit('light:on');
+            socket.broadcast.emit('light:on');
             led.on();
         }
 
         function off() {
-            socket.emit('light:off');
+            socket.broadcast.emit('light:off');
             led.off();
         }
 
