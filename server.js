@@ -24,10 +24,46 @@ var board = new five.Board();
 board.on('ready', function() {
     console.log('board is ready');
 
-    var led = new five.Led(13);
+    function Led(_color, _port, _board) {
+        console.log('configuring led');
+        var port = _port,
+            board = _board,
+            output;
 
-    // remember light state
-    var light = false;
+        this.color = _color;
+
+        this.set = function(_output) {
+            output = _output;
+            board.analogWrite(port, output);
+        };
+
+        this.get = function() {
+            return output;
+        };
+
+        // helpers
+        this.off = function() {
+            this.set(0);
+        };
+        this.on = function() {
+            this.set(255);
+        };
+
+        // init
+        output = 0;
+        this.pin = board.pinMode(port, five.Pin.PWM);
+        this.set(output);
+
+    }
+
+    // ports = 11, 10, 9
+    var colors = {
+        green: new Led('green', 11, this),
+        red: new Led('red', 10, this),
+        blue: new Led('blue', 9, this)
+    };
+
+
     // remember connections
     var connections = 0;
 
@@ -35,15 +71,24 @@ board.on('ready', function() {
         connections++;
         console.log('connected: ' + connections);
 
-        // set to what the light currently is
-        socket.emit('light:' + (light ? 'on' : 'off'));
-
-        socket.on('light:on', function() {
-            on();
+        // when a client changes the light setting
+        socket.on('set', function(data) {
+            colors[data.color].set(data.output);
+            socket.broadcast.emit('set', data);
         });
 
-        socket.on('light:off', function() {
-            off();
+        // when the client needs to initialize
+        socket.on('init', function() {
+            // iterate over colors
+            for (var key in colors) {
+                var color = colors[key];
+                // send back info for each light
+                // TODO: concat into one message back
+                socket.emit('set', {
+                    color: color.color,
+                    output: color.get()
+                });
+            }
         });
 
         socket.on('disconnect', function() {
@@ -52,21 +97,6 @@ board.on('ready', function() {
             console.log('connected: ' + connections);
         });
 
-        function on() {
-            io.emit('light:on');
-            led.on();
-            light = true;
-        }
-
-        function off() {
-            io.emit('light:off');
-            led.off();
-            light = false;
-        }
-
-        board.repl.inject({
-            on: on,
-            off: off
-        });
+        board.repl.inject(colors);
     });
 });

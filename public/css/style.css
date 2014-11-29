@@ -1,18 +1,26 @@
 h1:hover, p:hover {
-  cursor: default;
+    cursor: default;
+}
+body {
+    margin-top: 20px;
 }
 .jumbotron {
-  text-align: center;
+    text-align: center;
+    border-radius: 40px !important;
 }
-#light-switch {
-  cursor: pointer;
-  transition: 0.4s all ease;
+#lightbulb {
+    padding-bottom: 20px;
+    cursor: pointer;
+    transition: 0.4s all ease;
 }
+/* slider */
 
-#light-switch.light-on {
-  color: red;
+#red-slider {
+    background-color: red;
 }
-
-#light-switch.light-off {
-  color: black;
+#green-slider {
+    background-color: green;
+}
+#blue-slider {
+    background-color: blue;
 }

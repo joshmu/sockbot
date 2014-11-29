@@ -7,37 +7,100 @@
     <title>SOCKBOT</title>
     <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/bower_components/nouislider/distribute/jquery.nouislider.min.css">
     <link rel="stylesheet" href="public/css/style.css">
 </head>
 
 <body>
-    <div class="jumbotron">
-        <h1>SOCKBOT</h1>
-        <p>fusing socket.io and johnny-five</p>
-        <i id='light-switch' class="light-off fa fa-lightbulb-o fa-5x"></i>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>SOCKBOT</h1>
+            <p>fusing socket.io and johnny-five</p>
+            <i id='lightbulb' class="fa fa-lightbulb-o fa-5x"></i>
+            <div class="row">
+                <div class="col-xs-10 col-xs-offset-1">
+                    <div id="red-slider"></div>
+                    <br>
+                    <div id="green-slider"></div>
+                    <br>
+                    <div id="blue-slider"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/nouislider/distribute/jquery.nouislider.all.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
     // var socket = io('http://localhost');
     var socket = io();
 
+    // available colors
+    var colors = {};
 
-    var $switch = $('#light-switch');
-    $switch.on('click', function() {
-      var light = $switch.hasClass('light-off');
-      socket.emit('light:' + (light ? 'on' : 'off'));
+    // sliders
+    $('div[id*="-slider"]').each(function() {
+        var $slider = $(this);
+        var color = $slider.attr('id').split('-')[0];
+
+        // add to available colors
+        colors[color] = $slider;
+
+        // create slider
+        $slider.noUiSlider({
+            start: [0],
+            step: 1,
+            range: {
+                min: [0],
+                max: [255]
+            }
+        });
+
+        // when slider is changed
+        $slider.on('set', function() {
+            var data = {
+                color: color,
+                output: $slider.val()
+            };
+            changeRGB(data);
+            socket.emit('set', data);
+        });
+
     });
 
-    socket.on('light:on', function() {
-        console.log('light:on');
-        $switch.removeClass('light-off').addClass('light-on');
+    // when everything is completed check for current output values
+    socket.emit('init');
+    socket.on('set', function(data) {
+        colors[data.color].val(data.output);
+        changeRGB(data);
     });
-    socket.on('light:off', function() {
-        console.log('light:off');
-        $switch.removeClass('light-on').addClass('light-off');
-    });
+
+    var $lightbulb = $('#lightbulb');
+
+    function changeRGB(data) {
+        // get current color
+        var color = $lightbulb.css('color');
+        var rgbReg = /\d+/g;
+        var curr = color.match(rgbReg);
+        var index;
+        switch (data.color) {
+            case 'red':
+                index = 0;
+                break;
+            case 'green':
+                index = 1;
+                break;
+            case 'blue':
+                index = 2;
+                break;
+            default:
+                console.log(color + ' is not available.');
+        }
+        curr[index] = parseInt(data.output);
+        var newRGB = 'rgb(' + curr.join(',') + ')';
+        $lightbulb.css('color', newRGB);
+    }
     </script>
 
 </body>
