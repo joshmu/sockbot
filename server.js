@@ -1,7 +1,3 @@
-// init ngrok with server load
-require('./initNgrok.js')();
-
-
 var five = require('johnny-five');
 
 var express = require('express');
@@ -81,18 +77,21 @@ board.on('ready', function() {
             socket.broadcast.emit('set', data);
         });
 
-        // when the client needs to initialize
-        socket.on('init', function() {
-            // iterate over colors
-            for (var key in colors) {
-                var color = colors[key];
-                // send back info for each light
-                // TODO: concat into one message back
-                socket.emit('set', {
-                    color: color.color,
-                    output: color.get()
-                });
-            }
+        // init client
+        Object.keys(colors).forEach(function(color) {
+            // send back info for each light
+            // TODO: concat into one message back
+            socket.emit('set', {
+                color: color,
+                output: colors[color].get()
+            });
+        });
+
+        socket.on('off', function() {
+            Object.keys(colors).forEach(function(color) {
+                colors[color].set(0);
+            });
+            socket.broadcast.emit('off');
         });
 
         socket.on('disconnect', function() {
